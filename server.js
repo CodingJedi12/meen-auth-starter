@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const session = require('express-session');
+const methodOverride = require('method-override')
 require('dotenv').config();
 
 //Database Connection
@@ -28,15 +29,26 @@ app.use(
         saveUninitialized: false,
     })
 );
+app.use(methodOverride('_method'))
 
 // Routes / Controllers
-app.get('/', (req, res) => {
-	res.render('index.ejs');
-});
 const userController = require('./controllers/users');
 app.use('/users', userController);
 const sessionsController = require('./controllers/sessions');
 app.use('/sessions', sessionsController);
+
+app.get('/', (req, res) => {
+	if (req.session.currentUser) {
+		res.render('dashboard.ejs', {
+			currentUser: req.session.currentUser
+		});
+	} if (!req.session.currentUser) {
+		res.render('index.ejs', {
+			currentUser: req.session.currentUser
+		});
+	}
+});
+
 
 // Listener
 const PORT = process.env.PORT;
